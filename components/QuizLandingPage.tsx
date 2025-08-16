@@ -1,18 +1,17 @@
 "use client"
 import React, { useState } from 'react';
 import { Mail, Trophy, Clock, Target, ArrowRight, Moon, Sun } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 interface QuizLandingPageProps {
   isDarkMode?: boolean;
   onToggleTheme?: () => void;
+  onStartQuiz?: (email: string) => void;
 }
 
-const QuizLandingPage = ({ isDarkMode = true, onToggleTheme }: QuizLandingPageProps) => {
+const QuizLandingPage = ({ isDarkMode = true, onToggleTheme, onStartQuiz }: QuizLandingPageProps) => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const router = useRouter();
 
   const handleSubmit = async (e?: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     if (e) {
@@ -34,15 +33,22 @@ const QuizLandingPage = ({ isDarkMode = true, onToggleTheme }: QuizLandingPagePr
     setMessage('');
 
     try {
-      // For demo purposes, simulate success
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setMessage('Registration successful! Redirecting to instructions...');
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setMessage('Email validated! Starting quiz...');
+      
+      // Pass email to parent component or start quiz directly
       setTimeout(() => {
-        console.log('Redirecting to instructions page...');
-        router.push('/quiz/instructions');
-      }, 2000);
+        if (onStartQuiz) {
+          onStartQuiz(email);
+        } else {
+          // Fallback - store in sessionStorage for the quiz page
+          sessionStorage.setItem('quizUserEmail', email);
+          window.location.href = '/quiz/challenge';
+        }
+      }, 1000);
     } catch (error) {
-      setMessage('Registration failed. Please try again.');
+      setMessage('Validation failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -79,14 +85,14 @@ const QuizLandingPage = ({ isDarkMode = true, onToggleTheme }: QuizLandingPagePr
         {/* Main Card */}
         <div className={`${themeClasses.card} border rounded-2xl p-8 shadow-xl`}>
           {/* Header */}
-          <div className="text-center mb-8"></div>
+          <div className="text-center mb-8">
             <div className="bg-gradient-to-r from-yellow-400 to-orange-500 p-4 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
               <Trophy className="w-10 h-10 text-white" />
             </div>
             <h1 className={`text-3xl font-bold ${themeClasses.text.primary} mb-3`}>
               Ultimate Quiz Challenge
             </h1>
-            <p className={`${themeClasses.text.secondary} `}>
+            <p className={`${themeClasses.text.secondary}`}>
               Test your knowledge and compete for the top score!
             </p>
           </div>
@@ -131,7 +137,7 @@ const QuizLandingPage = ({ isDarkMode = true, onToggleTheme }: QuizLandingPagePr
             {/* Message Display */}
             {message && (
               <div className={`p-4 rounded-xl text-center font-medium border ${
-                message.includes('successful') 
+                message.includes('Starting') || message.includes('validated')
                   ? 'bg-green-50 text-green-700 border-green-200' 
                   : 'bg-red-50 text-red-700 border-red-200'
               }`}>
@@ -162,6 +168,7 @@ const QuizLandingPage = ({ isDarkMode = true, onToggleTheme }: QuizLandingPagePr
           </div>
         </div>
       </div>
+    </div>
   );
 };
 
